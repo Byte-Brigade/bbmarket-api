@@ -13,14 +13,15 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('users', function (Blueprint $table) {
+        Schema::create('detail_orders', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('order_id')->nullable()->index('fk_detail_orders_to_orders');
+            $table->foreignId('product_id')->nullable()->index('fk_detail_orders_to_detail_products');
             $table->string('name');
-            $table->string('email')->unique();
-            $table->timestamp('email_verified_at')->nullable();
-            $table->string('password');
-            $table->string('firebase_uid');
-            $table->rememberToken();
+            $table->integer('quantity');
+            $table->text('note');
+            $table->decimal('weight');
+            $table->string('unit');
             $table->timestamps();
             $table->softDeletes();
         });
@@ -33,6 +34,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('users');
+        Schema::dropIfExists('detail_orders');
     }
 };
