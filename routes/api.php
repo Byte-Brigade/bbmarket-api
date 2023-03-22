@@ -25,6 +25,7 @@ Route::middleware('auth:api')->group(function () {
 });
 
 
+
 Route::apiResource('products', ProductController::class);
 
 Route::get('categories/{id}/products', [CategoryController::class, 'productsByCategory']);

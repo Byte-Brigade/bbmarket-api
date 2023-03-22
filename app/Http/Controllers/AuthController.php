@@ -7,6 +7,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Firebase\Auth\Token\Exception\InvalidToken;
+use Illuminate\Support\Facades\Validator;
 
 class AuthController extends Controller
 {
@@ -15,23 +16,20 @@ class AuthController extends Controller
      */
     public function register(Request $request)
     {
-        $this->validate($request, [
-            'name' => 'required|min:4',
-            'email' => 'required|email',
-            'password' => 'required|min:8',
-        ]);
+        $data = json_decode($request->getContent());
 
 
 
         $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => bcrypt($request->password)
+            'name' => $data->name,
+            'email' => $data->email,
+            'firebase_uid' => $data->uid,
+            'password' => bcrypt($data->password)
         ]);
 
-        $token = $user->createToken('LaravelAuthApp')->accessToken;
+        // $token = $user->createToken('LaravelAuthApp')->accessToken;
 
-        return response()->json(['token' => $token], 200);
+        return response()->json(['user' => $user], 200);
     }
 
     /**
@@ -40,11 +38,12 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
+        $data = json_decode($request->getContent());
 
         // Launch Firebase Auth
         $auth = app('firebase.auth');
         // Retrieve the Firebase credential's token
-        $idTokenString = $request->input('Firebasetoken');
+        $idTokenString = $data->firebasetoken;
 
         try { // Try to verify the firebase credential token with Google
             $verifiedToken = $auth->verifyIdToken($idTokenString);
@@ -58,7 +57,7 @@ class AuthController extends Controller
         }
 
         // Retrieve the UID (User ID) from the verified Firebase credential's token
-        $uid = $verifiedToken->getClaim('sub');
+        $uid = $verifiedToken->claims()->get('sub');
 
         // Retrieve the user model linked with the Firebase UID
         $user = User::where('firebase_uid', $uid)->first();
@@ -84,7 +83,7 @@ class AuthController extends Controller
             "access_token" => $tokenResult->accessToken,
             "token_type" => "Bearer",
             'expires_at' => Carbon::parse($tokenResult->token->expires_at)->toDateTimeString()
-        ]);
+        ], 200);
 
         // $data = [
         //     'email' => $request->email,
