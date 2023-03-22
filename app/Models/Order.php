@@ -7,5 +7,12 @@ use Illuminate\Database\Eloquent\Model;
 
 class Order extends Model
 {
-    use HasFactory;
+    protected $table = 'orders';
+
+    protected $guarded = ['id'];
+
+    public function courier()
+    {
+        return $this->belongsTo(Courier::class, 'courier_id', 'id');
+    }
 }
